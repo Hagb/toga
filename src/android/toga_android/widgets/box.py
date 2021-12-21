@@ -5,7 +5,7 @@ from .base import Widget
 
 class Box(Widget):
     def create(self):
-        self.native = RelativeLayout(MainActivity.singletonThis)
+        self.native = RelativeLayout(self._native_activity)
 
     def set_child_bounds(self, widget, x, y, width, height):
         # Avoid setting child boundaries if `create()` has not been called.
@@ -18,4 +18,5 @@ class Box(Widget):
         layout_params = RelativeLayout__LayoutParams(width, height)
         layout_params.topMargin = y
         layout_params.leftMargin = x
+        print(widget, x, y, widget, height)
         self.native.updateViewLayout(widget.native, layout_params)

@@ -3,6 +3,7 @@ from toga.constants import CENTER, JUSTIFY, LEFT, RIGHT
 
 from ..libs.activity import MainActivity
 from ..libs.android.view import Gravity
+from rubicon.java.jni import java
 
 
 def _get_activity(_cache=[]):
@@ -25,12 +26,39 @@ def _get_activity(_cache=[]):
 
 class Widget:
     def __init__(self, interface):
+        self.delayed_status = [False, []]
+        self.native = None
         self.interface = interface
         self.interface._impl = self
         self._container = None
-        self.native = None
-        self._native_activity = _get_activity()
+
+    def __getattribute__(self, name):
+        delayed_status = object.__getattribute__(self, "delayed_status")
+        if delayed_status[0]:
+            return object.__getattribute__(self, name)
+        try:
+            not_init = object.__getattribute__(self, "native") is None
+        except AttributeError as e:
+            not_init = True
+        if not_init and name.startswith("set_") or name == "rehint":
+            return lambda *x, **y: delayed_status[1].append((name, x, y))
+        return object.__getattribute__(self, name)
+
+    def create_recursion(self, win):
+        self._native_activity = win
         self.create()
+        self.native = type(self.native)(__jni__=java.NewGlobalRef(self.native))
+        self.delayed_status[0] = True
+        for child in self.interface.children:
+            child._impl.create_recursion(win)
+
+    def replay_recursion(self):
+        for child in self.interface.children:
+            child._impl.replay_recursion()
+        for name_, x, y in self.delayed_status[1]:
+            print(name_, x, y)
+            object.__getattribute__(self, name_)(*x, **y)
+        self.delayed_status[1].clear()
         # Immediately re-apply styles. Some widgets may defer style application until
         # they have been added to a container.
         self.interface.style.reapply()
@@ -48,8 +76,10 @@ class Widget:
     @container.setter
     def container(self, container):
         self._container = container
-        self.viewport = container.viewport
+        self.set_container(container)
 
+    def set_container(self, container):
+        self.viewport = container.viewport
         if self.native:
             # When initially setting the container and adding widgets to the container,
             # we provide no `LayoutParams`. Those are promptly added when Toga
