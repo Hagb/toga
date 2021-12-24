@@ -12,6 +12,7 @@ from ..libs.android.widget import (
     LinearLayout__LayoutParams,
     RelativeLayout,
     RelativeLayout__LayoutParams,
+    ViewGroup__LayoutParams,
     ScrollView,
     TextView
 )
@@ -55,6 +56,7 @@ class DetailedList(Widget):
     def create(self):
         # DetailedList is not a specific widget on Android, so we build it out
         # of a few pieces.
+        print(0)
         if self.native is None:
             self.native = LinearLayout(self._native_activity)
             self.native.setOrientation(LinearLayout.VERTICAL)
@@ -65,10 +67,12 @@ class DetailedList(Widget):
         scroll_view = ScrollView(self._native_activity)
         self._scroll_view = ScrollView(
             __jni__=java.NewGlobalRef(scroll_view))
+        print(1)
         scroll_view_layout_params = LinearLayout__LayoutParams(
-                LinearLayout__LayoutParams.MATCH_PARENT,
-                LinearLayout__LayoutParams.MATCH_PARENT
+                ViewGroup__LayoutParams.MATCH_PARENT,
+                ViewGroup__LayoutParams.MATCH_PARENT
         )
+        print(2)
         scroll_view_layout_params.gravity = Gravity.TOP
         swipe_refresh_wrapper = SwipeRefreshLayout(self._native_activity)
         swipe_refresh_wrapper.setOnRefreshListener(OnRefreshListener(self.interface))
@@ -80,14 +84,17 @@ class DetailedList(Widget):
         self._dismissable_container = LinearLayout(
             __jni__=java.NewGlobalRef(dismissable_container)
         )
+        print(3)
         dismissable_container.setOrientation(LinearLayout.VERTICAL)
         dismissable_container_params = LinearLayout__LayoutParams(
-                LinearLayout__LayoutParams.MATCH_PARENT,
-                LinearLayout__LayoutParams.MATCH_PARENT
+                ViewGroup__LayoutParams.MATCH_PARENT,
+                ViewGroup__LayoutParams.MATCH_PARENT
         )
+        print(4)
         scroll_view.addView(
                 dismissable_container, dismissable_container_params
         )
+        print(5)
         for i in range(len((self.interface.data or []))):
             self._make_row(dismissable_container, i)
 
@@ -104,8 +111,8 @@ class DetailedList(Widget):
             bitmap = BitmapFactory.decodeFile(str(icon._impl.path))
             icon_image_view.setImageBitmap(bitmap)
         icon_layout_params = RelativeLayout__LayoutParams(
-            RelativeLayout__LayoutParams.WRAP_CONTENT,
-            RelativeLayout__LayoutParams.WRAP_CONTENT)
+            ViewGroup__LayoutParams.WRAP_CONTENT,
+            ViewGroup__LayoutParams.WRAP_CONTENT)
         icon_layout_params.width = 150
         icon_layout_params.setMargins(25, 0, 25, 0)
         icon_layout_params.height = self.ROW_HEIGHT
@@ -115,8 +122,8 @@ class DetailedList(Widget):
         # Create layout to show top_text and bottom_text.
         text_container = LinearLayout(self._native_activity)
         text_container_params = RelativeLayout__LayoutParams(
-                RelativeLayout__LayoutParams.WRAP_CONTENT,
-                RelativeLayout__LayoutParams.WRAP_CONTENT)
+                ViewGroup__LayoutParams.WRAP_CONTENT,
+                ViewGroup__LayoutParams.WRAP_CONTENT)
         text_container_params.height = self.ROW_HEIGHT
         text_container_params.setMargins(25 + 25 + 150, 0, 0, 0)
         row_foreground.addView(text_container, text_container_params)
@@ -133,14 +140,14 @@ class DetailedList(Widget):
         bottom_text.setText(str(getattr(self.interface.data[i], 'subtitle', '')))
         bottom_text.setTextSize(16.0)
         top_text_params = LinearLayout__LayoutParams(
-                RelativeLayout__LayoutParams.WRAP_CONTENT,
-                RelativeLayout__LayoutParams.MATCH_PARENT)
+                ViewGroup__LayoutParams.WRAP_CONTENT,
+                ViewGroup__LayoutParams.MATCH_PARENT)
         top_text_params.weight = 1.0
         top_text.setGravity(Gravity.BOTTOM)
         text_container.addView(top_text, top_text_params)
         bottom_text_params = LinearLayout__LayoutParams(
-                RelativeLayout__LayoutParams.WRAP_CONTENT,
-                RelativeLayout__LayoutParams.MATCH_PARENT)
+                ViewGroup__LayoutParams.WRAP_CONTENT,
+                ViewGroup__LayoutParams.MATCH_PARENT)
         bottom_text_params.weight = 1.0
         bottom_text.setGravity(Gravity.TOP)
         bottom_text_params.gravity = Gravity.TOP
